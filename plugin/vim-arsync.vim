@@ -5,103 +5,81 @@
 " License: MIT
 
 function! LoadConf()
-  let conf = {}
-  let l_configpath = expand('%:p:h')
-  let l_configfile = l_configpath . '/.vim-arsync'
-  let l_foundconfig = ''
-  if filereadable(l_configfile)
-    let l_foundconfig = l_configfile
-  else
-    while !filereadable(l_configfile)
-      let slashindex = strridx(l_configpath, '/')
-      if slashindex >= 0
-        let l_configpath = l_configpath[0:slashindex]
-        let l_configfile = l_configpath . '.vim-arsync'
-        let l_configpath = l_configpath[0:slashindex-1]
-        if filereadable(l_configfile)
-          let l_foundconfig = l_configfile
-          break
-        endif
-        if slashindex == 0 && !filereadable(l_configfile)
-          break
-        endif
-      else
-        break
-      endif
-    endwhile
-  endif
+    let l:conf_dict = {}
+    let l:config_file = findfile('.vim-arsync', '.;')
 
-  if strlen(l_foundconfig) > 0
-    let options = readfile(l_foundconfig)
-    for i in options
-      let vname = substitute(i[0:stridx(i, ' ')], '^\s*\(.\{-}\)\s*$', '\1', '')
-        if vname == "ignore_path"
-            let vvalue = eval(substitute(i[stridx(i, ' '):], '^\s*\(.\{-}\)\s*$', '\1', ''))
-            " echo substitute(i[stridx(i, ' '):], '^\s*\(.\{-}\)\s*$', '\1', '')
-        else
-            let vvalue = escape(substitute(i[stridx(i, ' '):], '^\s*\(.\{-}\)\s*$', '\1', ''), "%#!")
-        endif
-      let conf[vname] = vvalue
-    endfor
-  endif
-  return conf
+    if strlen(l:config_file) > 0
+        let l:conf_options = readfile(l:config_file)
+        for i in l:conf_options
+            let l:var_name = substitute(i[0:stridx(i, ' ')], '^\s*\(.\{-}\)\s*$', '\1', '')
+            if l:var_name == 'ignore_path'
+                let l:var_value = eval(substitute(i[stridx(i, ' '):], '^\s*\(.\{-}\)\s*$', '\1', ''))
+                " echo substitute(i[stridx(i, ' '):], '^\s*\(.\{-}\)\s*$', '\1', '')
+            else
+                let l:var_value = escape(substitute(i[stridx(i, ' '):], '^\s*\(.\{-}\)\s*$', '\1', ''), '%#!')
+            endif
+            let l:conf_dict[l:var_name] = l:var_value
+        endfor
+    endif
+    return l:conf_dict
 endfunction
 
-function! s:handler(job_id, data, event_type)
+function! JobHandler(job_id, data, event_type)
     " redraw | echom a:job_id . ' ' . a:event_type
     redraw | echom string(a:data)
 endfunction
 
 function! ShowConf()
-    let conf = LoadConf()
-    echo conf
+    let l:conf_dict = LoadConf()
+    echo l:conf_dict
 endfunction
 
 function! ARsync(direction)
-    let conf = LoadConf()
-    if has_key(conf, 'remote_host')
-        let userpasswd = ""
-        if has_key(conf, 'remote_user')
-            let userpasswd = conf['remote_user'] . "@"
-            if has_key(conf, 'remote_passwd')
-                let userpasswd = conf['remote_user'] . ":" . conf['remote_passwd'] . "@"
+    let l:conf_dict = LoadConf()
+    if has_key(l:conf_dict, 'remote_host')
+        let l:user_passwd = ''
+        if has_key(l:conf_dict, 'remote_user')
+            let l:user_passwd = l:conf_dict['remote_user'] . '@'
+            if has_key(l:conf_dict, 'remote_passwd')
+                let l:user_passwd = l:conf_dict['remote_user'] . ':' . l:conf_dict['remote_passwd'] . '@'
             endif
         endif
 
-        if a:direction == "up"
-            let cmd = [ "rsync", "-avzhe", "ssh", conf['project_path'], userpasswd . conf['remote_host'] . ":" . conf['remote_path'], "--exclude", ".*"]
-        elseif a:direction == "down"
-            let cmd = [ "rsync", "-avzhe", "ssh", userpasswd . conf['remote_host'] . ":" . conf['remote_path'], conf['project_path'], "--exclude", ".*"]
+        if a:direction == 'down'
+            let l:cmd = [ 'rsync', '-avzhe', 'ssh', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'], l:conf_dict['local_path'], '--exclude', '.*']
+        else " default UP
+            let l:cmd = [ 'rsync', '-avzhe', 'ssh', l:conf_dict['local_path'], l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'], '--exclude', '.*']
         endif
-        if has_key(conf, 'ignore_path')
-            for d in conf['ignore_path']
-                let cmd = cmd + ["--exclude", d]
+        if has_key(l:conf_dict, 'ignore_path')
+            for file in l:conf_dict['ignore_path']
+                let l:cmd = l:cmd + ['--exclude', file]
             endfor
         endif
 
         " redraw | echom join(cmd)
-        let jobid = arsync#job#start(cmd, {
-            \ 'on_stdout': function('s:handler'),
-            \ 'on_stderr': function('s:handler'),
-            \ 'on_exit': function('s:handler'),
-            \ })       
+        let l:job_id = arsync#job#start(cmd, {
+                    \ 'on_stdout': function('JobHandler'),
+                    \ 'on_stderr': function('JobHandler'),
+                    \ 'on_exit': function('JobHandler'),
+                    \ })
+        " TODO: handle errors
     else
         echo 'Could not locate a .vim-arsync configuration file. Aborting...'
     endif
 endfunction
 
 function! AutoSync()
-    let conf = LoadConf()
-    if has_key(conf, 'auto_sync_up')
-        if conf["auto_sync_up"] == 1
+    let l:conf_dict = LoadConf()
+    if has_key(l:conf_dict, 'auto_sync_up')
+        if l:conf_dict['auto_sync_up'] == 1
             autocmd BufWritePost * ARsyncUp
-            " echo "Setting up auto sync to remote"
+            " echo 'Setting up auto sync to remote'
         endif
     endif
 endfunction
 
-if !executable("rsync")
-    echo "You need to install rsync to be able to use the vim-arsync plugin"
+if !executable('rsync')
+    echo 'You need to install rsync to be able to use the vim-arsync plugin'
     finish
 endif
 
