@@ -35,19 +35,21 @@ remote_passwd  secret
 remote_path     ~/temp/
 local_path    /home/ken/temp/vuetest/
 ignore_path     ["build/","test/"]
+ignore_dotfiles 1
 auto_sync_up    0
 ```
 
 Required fields are:
 - ```remote_host```     remote host to connect (must have ssh enabled)
 - ```remote_path```     remote folder to be synced
-- ```local_path```      local folder to be synced
 
 Optional fields are:
 - ```remote_user```    username to connect with
 - ```remote_passwd```  password to connect with 
+- ```local_path```     local folder to be synced (defaults to folder of .vim-arsync)
 - ```ignore_path```    list of ingored files/folders
-- ```auto_sync_up```   boolean for activating automatic upload syncing on file save
+- ```ignore_dotfiles``` set to 1 to not sync dotfiles (e.g. .vim-arsync)
+- ```auto_sync_up```   set to 1 for activating automatic upload syncing on file save
 
 NB: fields can be commented out with ```#```
     

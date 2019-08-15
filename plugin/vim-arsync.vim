@@ -21,6 +21,10 @@ function! LoadConf()
             let l:conf_dict[l:var_name] = l:var_value
         endfor
     endif
+    if !has_key(l:conf_dict, "local_path")
+        " echom fnamemodify(l:config_file,':p:h')
+        let l:conf_dict['local_path'] = fnamemodify(l:config_file,':p:h')
+    endif
     return l:conf_dict
 endfunction
 
@@ -46,14 +50,19 @@ function! ARsync(direction)
         endif
 
         if a:direction == 'down'
-            let l:cmd = [ 'rsync', '-avzhe', 'ssh', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'], l:conf_dict['local_path'], '--exclude', '.*']
+            let l:cmd = [ 'rsync', '-avzhe', 'ssh', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', l:conf_dict['local_path'] . '/']
         else " default UP
-            let l:cmd = [ 'rsync', '-avzhe', 'ssh', l:conf_dict['local_path'], l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'], '--exclude', '.*']
+            let l:cmd = [ 'rsync', '-avzhe', 'ssh', l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/']
         endif
         if has_key(l:conf_dict, 'ignore_path')
             for file in l:conf_dict['ignore_path']
                 let l:cmd = l:cmd + ['--exclude', file]
             endfor
+        endif
+        if has_key(l:conf_dict, 'ignore_dotfiles')
+            if l:conf_dict['ignore_dotfiles'] == 1
+                let l:cmd = l:cmd + ['--exclude', '.*']
+            endif
         endif
 
         " redraw | echom join(cmd)
