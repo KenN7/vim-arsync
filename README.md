@@ -69,7 +69,9 @@ Commands can be mapped to keyboard shortcuts enhance operations
 
 - [ ] run more tests
 - [ ] handle -u (update) feature of rsync ?
-- [ ] ...
+- [ ] deactivate auto sync on error
+- [ ] handle errors and put stdout/stderr in qf
+- [ ] better handle comments in conf file
 
 ## Acknoledgements
 
