@@ -30,12 +30,23 @@ endfunction
 
 function! JobHandler(job_id, data, event_type)
     " redraw | echom a:job_id . ' ' . a:event_type
-    redraw | echom string(a:data)
+    if a:event_type == 'stdout' || a:event_type == 'stderr'
+        " redraw | echom string(a:data)
+        if has_key(getqflist({'id' : g:qfid}), 'id')
+            call setqflist([], 'a', {'id' : g:qfid, 'lines' : a:data})
+        endif
+    elseif a:event_type == 'exit'
+        if a:data != 0
+            copen
+        endif
+        " echom string(a:data)
+    endif
 endfunction
 
 function! ShowConf()
     let l:conf_dict = LoadConf()
     echo l:conf_dict
+    echom string(getqflist())
 endfunction
 
 function! ARsync(direction)
@@ -65,6 +76,9 @@ function! ARsync(direction)
             endif
         endif
 
+        " create qf for job
+        call setqflist([], ' ', {'title' : 'vim-arsync'})
+        let g:qfid = getqflist({'id' : 0}).id
         " redraw | echom join(cmd)
         let l:job_id = arsync#job#start(cmd, {
                     \ 'on_stdout': function('JobHandler'),
