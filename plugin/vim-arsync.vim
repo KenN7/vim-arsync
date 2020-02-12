@@ -6,7 +6,7 @@
 
 function! LoadConf()
     let l:conf_dict = {}
-    let l:config_file = findfile('.vim-arsync', '.;')
+    let l:config_file = findfile('.vim-arsync', '.,,;')
 
     if strlen(l:config_file) > 0
         let l:conf_options = readfile(l:config_file)
@@ -95,7 +95,7 @@ function! AutoSync()
     let l:conf_dict = LoadConf()
     if has_key(l:conf_dict, 'auto_sync_up')
         if l:conf_dict['auto_sync_up'] == 1
-            autocmd BufWritePost * ARsyncUp
+            autocmd BufWritePost,FileWritePost * ARsyncUp
             " echo 'Setting up auto sync to remote'
         endif
     endif
@@ -110,5 +110,5 @@ command! ARsyncUp call ARsync('up')
 command! ARsyncDown call ARsync('down')
 command! ARshowConf call ShowConf()
 
-call AutoSync()
+autocmd VimEnter * call AutoSync()
 
