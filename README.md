@@ -61,6 +61,8 @@ everytime a buffer is saved.
 
 - ```:ARshowConf``` shows detected configuration
 - ```:ARsyncUp``` Syncs files up to the remote (upload local to remote)
+- ```:ARsyncUpDelete``` Syncs files up to the remote (upload local to remote)
+  and delete remote files not existing on local (be careful with that)
 - ```:ARsyncDown``` Syncs files down from the remote (download remote to local)
 
 Commands can be mapped to keyboard shortcuts enhance operations
