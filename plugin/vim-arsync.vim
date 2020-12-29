@@ -62,7 +62,7 @@ function! ARsync(direction)
 
         if a:direction == 'down'
             let l:cmd = [ 'rsync', '-avzhe', 'ssh', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', l:conf_dict['local_path'] . '/']
-        elseif  a:direction == 'up' 
+        elseif  a:direction == 'up'
             let l:cmd = [ 'rsync', '-avzhe', 'ssh', l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/']
         else " updelete
             let l:cmd = [ 'rsync', '-avzhe', 'ssh', l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', '--delete']
@@ -114,4 +114,4 @@ command! ARsyncDown call ARsync('down')
 command! ARshowConf call ShowConf()
 
 autocmd VimEnter * call AutoSync()
-
+autocmd DirChanged * call AutoSync()
