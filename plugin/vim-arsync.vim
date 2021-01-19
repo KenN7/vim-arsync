@@ -39,6 +39,9 @@ function! JobHandler(job_id, data, event_type)
         if a:data != 0
             copen
         endif
+        if a:data == 0
+            echo "vim-arsync success."
+        endif
         " echom string(a:data)
     endif
 endfunction
@@ -56,7 +59,11 @@ function! ARsync(direction)
         if has_key(l:conf_dict, 'remote_user')
             let l:user_passwd = l:conf_dict['remote_user'] . '@'
             if has_key(l:conf_dict, 'remote_passwd')
-                let l:user_passwd = l:conf_dict['remote_user'] . ':' . l:conf_dict['remote_passwd'] . '@'
+                if !executable('sshpass')
+                    echoerr 'You need to install sshpass to use plain text password, otherwise please use ssh-key auth.'
+                    return
+                endif
+                let sshpass_passwd = l:conf_dict['remote_passwd']
             endif
         endif
 
@@ -77,6 +84,9 @@ function! ARsync(direction)
                 let l:cmd = l:cmd + ['--exclude', '.*']
             endif
         endif
+        if has_key(l:conf_dict, 'remote_passwd')
+            let l:cmd = ['sshpass', '-p', sshpass_passwd] + l:cmd
+        endif
 
         " create qf for job
         call setqflist([], ' ', {'title' : 'vim-arsync'})
@@ -89,7 +99,7 @@ function! ARsync(direction)
                     \ })
         " TODO: handle errors
     else
-        echo 'Could not locate a .vim-arsync configuration file. Aborting...'
+        echoerr 'Could not locate a .vim-arsync configuration file. Aborting...'
     endif
 endfunction
 
@@ -104,7 +114,7 @@ function! AutoSync()
 endfunction
 
 if !executable('rsync')
-    echo 'You need to install rsync to be able to use the vim-arsync plugin'
+    echoerr 'You need to install rsync to be able to use the vim-arsync plugin'
     finish
 endif
 
