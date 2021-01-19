@@ -7,11 +7,13 @@ vim plugin for asynchronous synchronisation of remote files and local files usin
 - asynchronous operation
 - project based configuration file
 - auto sync up on file save
+- works with ssh-keys (recommended) or plaintext password in config file
 
 ## Installation
 ### Dependencies
 - rsync
 - *vim8* or *neovim*
+- sshpass (optional: only needed when using plaintext password in config file)
 
 
 ### Using vim-plug
@@ -45,7 +47,7 @@ Required fields are:
 
 Optional fields are:
 - ```remote_user```    username to connect with
-- ```remote_passwd```  password to connect with 
+- ```remote_passwd```  password to connect with (requires sshpass) (needed if not using ssh-keys) 
 - ```local_path```     local folder to be synced (defaults to folder of .vim-arsync)
 - ```ignore_path```    list of ingored files/folders
 - ```ignore_dotfiles``` set to 1 to not sync dotfiles (e.g. .vim-arsync)
