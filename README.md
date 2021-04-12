@@ -40,6 +40,8 @@ local_path    /home/ken/temp/vuetest/
 ignore_path     ["build/","test/"]
 ignore_dotfiles 1
 auto_sync_up    0
+remote_or_local remote
+sleep_before_sync 0
 ```
 
 Required fields are:
@@ -54,6 +56,7 @@ Optional fields are:
 - ```ignore_path```    list of ingored files/folders
 - ```ignore_dotfiles``` set to 1 to not sync dotfiles (e.g. .vim-arsync)
 - ```auto_sync_up```   set to 1 for activating automatic upload syncing on file save
+- ```remote_or_local``` set to 'local' if you want to perform syncing localy
 
 NB: fields can be commented out with ```#```
     

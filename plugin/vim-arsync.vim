@@ -28,6 +28,9 @@ function! LoadConf()
     if !has_key(l:conf_dict, "remote_port")
         let l:conf_dict['remote_port'] = 22
     endif
+    if !has_key(l:conf_dict, "remote_or_local")
+        let l:conf_dict['remote_or_local'] = "remote"
+    endif
     return l:conf_dict
 endfunction
 
@@ -70,12 +73,22 @@ function! ARsync(direction)
             endif
         endif
 
+        if l:conf_dict['remote_or_local'] == 'remote'
             if a:direction == 'down'
-                let l:cmd = [ 'rsync', '-vare', 'ssh -p '.l:conf_dict['remote_port'], l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', l:conf_dict['local_path'] . '/']
+                let l:cmd = [ 'rsync', '-vazre', 'ssh -p '.l:conf_dict['remote_port'], l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', l:conf_dict['local_path'] . '/']
             elseif  a:direction == 'up'
-                let l:cmd = [ 'rsync', '-vare', 'ssh -p '.l:conf_dict['remote_port'], l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/']
+                let l:cmd = [ 'rsync', '-vazre', 'ssh -p '.l:conf_dict['remote_port'], l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/']
             else " updelete
-                let l:cmd = [ 'rsync', '-vare', 'ssh -p '.l:conf_dict['remote_port'], l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', '--delete']
+                let l:cmd = [ 'rsync', '-vazre', 'ssh -p '.l:conf_dict['remote_port'], l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', '--delete']
+            endif
+        elseif l:conf_dict['remote_or_local'] == 'local'
+            if a:direction == 'down'
+                let l:cmd = [ 'rsync', '-var',  l:conf_dict['remote_path'] , l:conf_dict['local_path']]
+            elseif  a:direction == 'up'
+                let l:cmd = [ 'rsync', '-var',  l:conf_dict['local_path'] , l:conf_dict['remote_path']]
+            else " updelete
+                let l:cmd = [ 'rsync', '-var',  l:conf_dict['local_path'] , l:conf_dict['remote_path'] . '/', '--delete']
+            endif
         endif
         if has_key(l:conf_dict, 'ignore_path')
             for file in l:conf_dict['ignore_path']
