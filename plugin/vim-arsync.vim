@@ -144,4 +144,3 @@ command! ARsyncDown call ARsync('down')
 command! ARshowConf call ShowConf()
 
 autocmd VimEnter * call AutoSync()
-autocmd DirChanged * call AutoSync()
