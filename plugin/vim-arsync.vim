@@ -25,6 +25,9 @@ function! LoadConf()
         " echom fnamemodify(l:config_file,':p:h')
         let l:conf_dict['local_path'] = fnamemodify(l:config_file,':p:h')
     endif
+    if !has_key(l:conf_dict, "remote_port")
+        let l:conf_dict['remote_port'] = 22
+    endif
     return l:conf_dict
 endfunction
 
@@ -67,12 +70,12 @@ function! ARsync(direction)
             endif
         endif
 
-        if a:direction == 'down'
-            let l:cmd = [ 'rsync', '-avzhe', 'ssh', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', l:conf_dict['local_path'] . '/']
-        elseif  a:direction == 'up'
-            let l:cmd = [ 'rsync', '-avzhe', 'ssh', l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/']
-        else " updelete
-            let l:cmd = [ 'rsync', '-avzhe', 'ssh', l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', '--delete']
+            if a:direction == 'down'
+                let l:cmd = [ 'rsync', '-vare', 'ssh -p '.l:conf_dict['remote_port'], l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', l:conf_dict['local_path'] . '/']
+            elseif  a:direction == 'up'
+                let l:cmd = [ 'rsync', '-vare', 'ssh -p '.l:conf_dict['remote_port'], l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/']
+            else " updelete
+                let l:cmd = [ 'rsync', '-vare', 'ssh -p '.l:conf_dict['remote_port'], l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', '--delete']
         endif
         if has_key(l:conf_dict, 'ignore_path')
             for file in l:conf_dict['ignore_path']
