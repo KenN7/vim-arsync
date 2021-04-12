@@ -73,6 +73,10 @@ function! ARsync(direction)
             endif
         endif
 
+        if has_key(l:conf_dict, "sleep_before_sync")
+            exe 'sleep '.l:conf_dict['sleep_before_sync']
+        endif
+
         if l:conf_dict['remote_or_local'] == 'remote'
             if a:direction == 'down'
                 let l:cmd = [ 'rsync', '-vare', 'ssh -p '.l:conf_dict['remote_port'], l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', l:conf_dict['local_path'] . '/']

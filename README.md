@@ -41,6 +41,7 @@ ignore_path     ["build/","test/"]
 ignore_dotfiles 1
 auto_sync_up    0
 remote_or_local local
+sleep_before_sync 3
 ```
 
 Required fields are:
@@ -56,6 +57,7 @@ Optional fields are:
 - ```ignore_dotfiles``` set to 1 to not sync dotfiles (e.g. .vim-arsync)
 - ```auto_sync_up```   set to 1 for activating automatic upload syncing on file save
 - ```remote_or_local``` set to 'local' if you want to perform syncing localy
+- ```sleep_before_sync```   set to x seconds if you want to sleep before sync(like compiling a file before syncing)
 
 NB: fields can be commented out with ```#```
     
