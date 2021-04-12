@@ -57,6 +57,7 @@ Optional fields are:
 - ```ignore_dotfiles``` set to 1 to not sync dotfiles (e.g. .vim-arsync)
 - ```auto_sync_up```   set to 1 for activating automatic upload syncing on file save
 - ```remote_or_local``` set to 'local' if you want to perform syncing localy
+- ```sleep_before_sync```   set to x seconds if you want to sleep before sync(like compiling a file before syncing)
 
 NB: fields can be commented out with ```#```
     
