@@ -33,7 +33,7 @@ Create a ```.vim-arsync``` file on the root of your project that contains the fo
 ```
 remote_host     example.com
 remote_user    john
-remote_port    24
+remote_port    22
 remote_passwd  secret 
 remote_path     ~/temp/
 local_path    /home/ken/temp/vuetest/
