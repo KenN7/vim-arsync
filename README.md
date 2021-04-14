@@ -51,7 +51,7 @@ Required fields are:
 Optional fields are:
 - ```remote_user```    username to connect with
 - ```remote_passwd```  password to connect with (requires sshpass) (needed if not using ssh-keys) 
-- ``remote_port``    port to connect to(default is 22)
+- ```remote_port```    remote ssh port to connect to (default is 22)
 - ```local_path```     local folder to be synced (defaults to folder of .vim-arsync)
 - ```ignore_path```    list of ingored files/folders
 - ```ignore_dotfiles``` set to 1 to not sync dotfiles (e.g. .vim-arsync)
