@@ -143,5 +143,8 @@ command! ARsyncUpDelete call ARsync('upDelete')
 command! ARsyncDown call ARsync('down')
 command! ARshowConf call ShowConf()
 
-autocmd VimEnter * call AutoSync()
-autocmd DirChanged * call AutoSync()
+augroup vimarsync
+    autocmd!
+    autocmd VimEnter * call AutoSync()
+    autocmd DirChanged * call AutoSync()
+augroup END
