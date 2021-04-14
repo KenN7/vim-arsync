@@ -33,12 +33,15 @@ Create a ```.vim-arsync``` file on the root of your project that contains the fo
 ```
 remote_host     example.com
 remote_user    john
+remote_port    22
 remote_passwd  secret 
 remote_path     ~/temp/
 local_path    /home/ken/temp/vuetest/
 ignore_path     ["build/","test/"]
 ignore_dotfiles 1
 auto_sync_up    0
+remote_or_local remote
+sleep_before_sync 0
 ```
 
 Required fields are:
@@ -48,10 +51,13 @@ Required fields are:
 Optional fields are:
 - ```remote_user```    username to connect with
 - ```remote_passwd```  password to connect with (requires sshpass) (needed if not using ssh-keys) 
+- ```remote_port```    remote ssh port to connect to (default is 22)
 - ```local_path```     local folder to be synced (defaults to folder of .vim-arsync)
 - ```ignore_path```    list of ingored files/folders
 - ```ignore_dotfiles``` set to 1 to not sync dotfiles (e.g. .vim-arsync)
 - ```auto_sync_up```   set to 1 for activating automatic upload syncing on file save
+- ```remote_or_local``` set to 'local' if you want to perform syncing localy
+- ```sleep_before_sync```   set to x seconds if you want to sleep before sync(like compiling a file before syncing)
 
 NB: fields can be commented out with ```#```
     

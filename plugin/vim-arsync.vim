@@ -25,6 +25,12 @@ function! LoadConf()
         " echom fnamemodify(l:config_file,':p:h')
         let l:conf_dict['local_path'] = fnamemodify(l:config_file,':p:h')
     endif
+    if !has_key(l:conf_dict, "remote_port")
+        let l:conf_dict['remote_port'] = 22
+    endif
+    if !has_key(l:conf_dict, "remote_or_local")
+        let l:conf_dict['remote_or_local'] = "remote"
+    endif
     return l:conf_dict
 endfunction
 
@@ -66,13 +72,22 @@ function! ARsync(direction)
                 let sshpass_passwd = l:conf_dict['remote_passwd']
             endif
         endif
-
-        if a:direction == 'down'
-            let l:cmd = [ 'rsync', '-avzhe', 'ssh', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', l:conf_dict['local_path'] . '/']
-        elseif  a:direction == 'up'
-            let l:cmd = [ 'rsync', '-avzhe', 'ssh', l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/']
-        else " updelete
-            let l:cmd = [ 'rsync', '-avzhe', 'ssh', l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', '--delete']
+        if l:conf_dict['remote_or_local'] == 'remote'
+            if a:direction == 'down'
+                let l:cmd = [ 'rsync', '-vazre', 'ssh -p '.l:conf_dict['remote_port'], l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', l:conf_dict['local_path'] . '/']
+            elseif  a:direction == 'up'
+                let l:cmd = [ 'rsync', '-vazre', 'ssh -p '.l:conf_dict['remote_port'], l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/']
+            else " updelete
+                let l:cmd = [ 'rsync', '-vazre', 'ssh -p '.l:conf_dict['remote_port'], l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', '--delete']
+            endif
+        elseif l:conf_dict['remote_or_local'] == 'local'
+            if a:direction == 'down'
+                let l:cmd = [ 'rsync', '-var',  l:conf_dict['remote_path'] , l:conf_dict['local_path']]
+            elseif  a:direction == 'up'
+                let l:cmd = [ 'rsync', '-var',  l:conf_dict['local_path'] , l:conf_dict['remote_path']]
+            else " updelete
+                let l:cmd = [ 'rsync', '-var',  l:conf_dict['local_path'] , l:conf_dict['remote_path'] . '/', '--delete']
+            endif
         endif
         if has_key(l:conf_dict, 'ignore_path')
             for file in l:conf_dict['ignore_path']
@@ -107,7 +122,12 @@ function! AutoSync()
     let l:conf_dict = LoadConf()
     if has_key(l:conf_dict, 'auto_sync_up')
         if l:conf_dict['auto_sync_up'] == 1
-            autocmd BufWritePost,FileWritePost * ARsyncUp
+            if has_key(l:conf_dict, 'sleep_before_sync')
+                let g:sleep_time = l:conf_dict['sleep_before_sync']*1000
+                autocmd BufWritePost,FileWritePost * call timer_start(g:sleep_time, { -> execute("call ARsync('up')", "")})
+            else
+                autocmd BufWritePost,FileWritePost * ARsyncUp
+            endif
             " echo 'Setting up auto sync to remote'
         endif
     endif
@@ -123,5 +143,8 @@ command! ARsyncUpDelete call ARsync('upDelete')
 command! ARsyncDown call ARsync('down')
 command! ARshowConf call ShowConf()
 
-autocmd VimEnter * call AutoSync()
-autocmd DirChanged * call AutoSync()
+augroup vimarsync
+    autocmd!
+    autocmd VimEnter * call AutoSync()
+    autocmd DirChanged * call AutoSync()
+augroup END
