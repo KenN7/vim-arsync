@@ -72,11 +72,6 @@ function! ARsync(direction)
                 let sshpass_passwd = l:conf_dict['remote_passwd']
             endif
         endif
-
-        if has_key(l:conf_dict, "sleep_before_sync")
-            exe 'sleep '.l:conf_dict['sleep_before_sync']
-        endif
-
         if l:conf_dict['remote_or_local'] == 'remote'
             if a:direction == 'down'
                 let l:cmd = [ 'rsync', '-vazre', 'ssh -p '.l:conf_dict['remote_port'], l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', l:conf_dict['local_path'] . '/']
@@ -127,7 +122,12 @@ function! AutoSync()
     let l:conf_dict = LoadConf()
     if has_key(l:conf_dict, 'auto_sync_up')
         if l:conf_dict['auto_sync_up'] == 1
-            autocmd BufWritePost,FileWritePost * ARsyncUp
+            if has_key(l:conf_dict, 'sleep_before_sync')
+                let g:sleep_time = l:conf_dict['sleep_before_sync']*1000
+                autocmd BufWritePost,FileWritePost * call timer_start(g:sleep_time, { -> execute("call ARsync('up')", "")})
+            else
+                autocmd BufWritePost,FileWritePost * ARsyncUp
+            endif
             " echo 'Setting up auto sync to remote'
         endif
     endif
