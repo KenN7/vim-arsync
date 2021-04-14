@@ -40,7 +40,7 @@ local_path    /home/ken/temp/vuetest/
 ignore_path     ["build/","test/"]
 ignore_dotfiles 1
 auto_sync_up    0
-remote_or_local local
+remote_or_local remote
 sleep_before_sync 3
 ```
 
