@@ -6,7 +6,7 @@
 
 function! LoadConf()
     let l:conf_dict = {}
-    let l:config_file = findfile('.vim-arsync', '.,,;')
+    let l:config_file = findfile('.vim-arsync', '.;')
 
     if strlen(l:config_file) > 0
         let l:conf_options = readfile(l:config_file)
