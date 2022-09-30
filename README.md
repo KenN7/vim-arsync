@@ -45,7 +45,7 @@ sleep_before_sync 0
 ```
 
 Required fields are:
-- ```remote_host```     remote host to connect (must have ssh enabled)
+- ```remote_host```     remote host to connect (must have ssh enabled) (multi hosts separated by a space, eg: host1 host2)
 - ```remote_path```     remote folder to be synced
 
 Optional fields are:

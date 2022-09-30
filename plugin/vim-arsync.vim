@@ -61,58 +61,61 @@ endfunction
 function! ARsync(direction)
     let l:conf_dict = LoadConf()
     if has_key(l:conf_dict, 'remote_host')
-        let l:user_passwd = ''
-        if has_key(l:conf_dict, 'remote_user')
-            let l:user_passwd = l:conf_dict['remote_user'] . '@'
-            if has_key(l:conf_dict, 'remote_passwd')
-                if !executable('sshpass')
-                    echoerr 'You need to install sshpass to use plain text password, otherwise please use ssh-key auth.'
-                    return
+        let remote_hosts = split(l:conf_dict['remote_host'], ' ')
+        for remote_host in remote_hosts
+            let l:user_passwd = ''
+            if has_key(l:conf_dict, 'remote_user')
+                let l:user_passwd = l:conf_dict['remote_user'] . '@'
+                if has_key(l:conf_dict, 'remote_passwd')
+                    if !executable('sshpass')
+                        echoerr 'You need to install sshpass to use plain text password, otherwise please use ssh-key auth.'
+                        return
+                    endif
+                    let sshpass_passwd = l:conf_dict['remote_passwd']
                 endif
-                let sshpass_passwd = l:conf_dict['remote_passwd']
             endif
-        endif
-        if l:conf_dict['remote_or_local'] == 'remote'
-            if a:direction == 'down'
-                let l:cmd = [ 'rsync', '-vazre', 'ssh -p '.l:conf_dict['remote_port'], l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', l:conf_dict['local_path'] . '/']
-            elseif  a:direction == 'up'
-                let l:cmd = [ 'rsync', '-vazre', 'ssh -p '.l:conf_dict['remote_port'], l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/']
-            else " updelete
-                let l:cmd = [ 'rsync', '-vazre', 'ssh -p '.l:conf_dict['remote_port'], l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', '--delete']
+            if l:conf_dict['remote_or_local'] == 'remote'
+                if a:direction == 'down'
+                    let l:cmd = [ 'rsync', '-vazre', 'ssh -p '.l:conf_dict['remote_port'], l:user_passwd . remote_host . ':' . l:conf_dict['remote_path'] . '/', l:conf_dict['local_path'] . '/']
+                elseif  a:direction == 'up'
+                    let l:cmd = [ 'rsync', '-vazre', 'ssh -p '.l:conf_dict['remote_port'], l:conf_dict['local_path'] . '/', l:user_passwd . remote_host . ':' . l:conf_dict['remote_path'] . '/']
+                else " updelete
+                    let l:cmd = [ 'rsync', '-vazre', 'ssh -p '.l:conf_dict['remote_port'], l:conf_dict['local_path'] . '/', l:user_passwd . remote_host . ':' . l:conf_dict['remote_path'] . '/', '--delete']
+                endif
+            elseif l:conf_dict['remote_or_local'] == 'local'
+                if a:direction == 'down'
+                    let l:cmd = [ 'rsync', '-var',  l:conf_dict['remote_path'] , l:conf_dict['local_path']]
+                elseif  a:direction == 'up'
+                    let l:cmd = [ 'rsync', '-var',  l:conf_dict['local_path'] , l:conf_dict['remote_path']]
+                else " updelete
+                    let l:cmd = [ 'rsync', '-var',  l:conf_dict['local_path'] , l:conf_dict['remote_path'] . '/', '--delete']
+                endif
             endif
-        elseif l:conf_dict['remote_or_local'] == 'local'
-            if a:direction == 'down'
-                let l:cmd = [ 'rsync', '-var',  l:conf_dict['remote_path'] , l:conf_dict['local_path']]
-            elseif  a:direction == 'up'
-                let l:cmd = [ 'rsync', '-var',  l:conf_dict['local_path'] , l:conf_dict['remote_path']]
-            else " updelete
-                let l:cmd = [ 'rsync', '-var',  l:conf_dict['local_path'] , l:conf_dict['remote_path'] . '/', '--delete']
+            if has_key(l:conf_dict, 'ignore_path')
+                for file in l:conf_dict['ignore_path']
+                    let l:cmd = l:cmd + ['--exclude', file]
+                endfor
             endif
-        endif
-        if has_key(l:conf_dict, 'ignore_path')
-            for file in l:conf_dict['ignore_path']
-                let l:cmd = l:cmd + ['--exclude', file]
-            endfor
-        endif
-        if has_key(l:conf_dict, 'ignore_dotfiles')
-            if l:conf_dict['ignore_dotfiles'] == 1
-                let l:cmd = l:cmd + ['--exclude', '.*']
+            if has_key(l:conf_dict, 'ignore_dotfiles')
+                if l:conf_dict['ignore_dotfiles'] == 1
+                    let l:cmd = l:cmd + ['--exclude', '.*']
+                endif
             endif
-        endif
-        if has_key(l:conf_dict, 'remote_passwd')
-            let l:cmd = ['sshpass', '-p', sshpass_passwd] + l:cmd
-        endif
+            if has_key(l:conf_dict, 'remote_passwd')
+                let l:cmd = ['sshpass', '-p', sshpass_passwd] + l:cmd
+            endif
 
-        " create qf for job
-        call setqflist([], ' ', {'title' : 'vim-arsync'})
-        let g:qfid = getqflist({'id' : 0}).id
-        " redraw | echom join(cmd)
-        let l:job_id = arsync#job#start(cmd, {
-                    \ 'on_stdout': function('JobHandler'),
-                    \ 'on_stderr': function('JobHandler'),
-                    \ 'on_exit': function('JobHandler'),
-                    \ })
-        " TODO: handle errors
+            " create qf for job
+            call setqflist([], ' ', {'title' : 'vim-arsync'})
+            let g:qfid = getqflist({'id' : 0}).id
+            " redraw | echom join(cmd)
+            let l:job_id = arsync#job#start(cmd, {
+                        \ 'on_stdout': function('JobHandler'),
+                        \ 'on_stderr': function('JobHandler'),
+                        \ 'on_exit': function('JobHandler'),
+                        \ })
+            " TODO: handle errors
+        endfor
     else
         echoerr 'Could not locate a .vim-arsync configuration file. Aborting...'
     endif
