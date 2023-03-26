@@ -10,9 +10,10 @@ if filereadable(s:user_config_file)
     let s:user_config = json_decode(readfile(s:user_config_file))
 else
     let s:user_config = {}
+    let s:user_config["projects"] = {}
 endif
 
-" return path to config file if exist
+" Path to config file
 function! s:config_file()
     let l:config_file = findfile('.vim-arsync', '.;')
     if strlen(l:config_file) > 0
@@ -21,63 +22,63 @@ function! s:config_file()
     return
 endfunction
 
-" Check if temporary auto save is enabled
-function! s:autosync_enabled()
-    let l:current_config = s:setup_config_file()
-    if !has_key(l:current_config, "autosync")
-        return 1
+" Get value from config file
+function! s:get_config_option(key, default)
+    let l:config_file = s:config_file()
+    " This project does not include a .vim-arsync file
+    if strlen(l:config_file) == 0
+        echoe "Didn't find any .vim-arsync file"
+        return a:default
     endif
-    return l:current_config["autosync"]
+
+    " Project never saved to config file
+    if !has_key(s:user_config["projects"], l:config_file)
+        return a:default
+    endif
+
+    " Option never saved to config file
+    if !has_key(s:user_config["projects"][l:config_file], a:key)
+        return a:default
+    endif
+
+    return s:user_config["projects"][l:config_file][a:key]
+
 endfunction
 
-" Setting up config dict and handles errors
-function! s:setup_config_file()
+" Set value in config file
+function! s:set_config_option(key, value)
     let l:config_file = s:config_file()
+    " this project does not include a .vim-arsync file
     if strlen(l:config_file) == 0
         echoe "Didn't find any .vim-arsync file"
         return
     endif
 
-    " Handle when first time called from new project
-    if !has_key(s:user_config, "projects")
-        let s:user_config["projects"] = {}
-    endif
+    " If project never been saved to config file
     if !has_key(s:user_config["projects"], l:config_file)
         let s:user_config["projects"][l:config_file] = {}
     endif
-    return s:user_config["projects"][l:config_file]
+    let s:user_config["projects"][l:config_file][a:key] = a:value
+
+    " Write to file
+    let l:json_temp = json_encode(s:user_config)
+    call writefile([l:json_temp], s:user_config_file)
+endfunction
+
+" Check if temporary auto save is enabled
+function! s:autosync_enabled()
+    let l:autosync_option = s:get_config_option("autosync", 1)
+    return l:autosync_option
 endfunction
 
 " Temporary disable auto save for current project
 function! s:disable_auto_save()
-    let l:config_file = s:config_file()
-
-    if strlen(l:config_file) == 0
-        echoe "Didn't find any .vim-arsync file"
-        return
-    endif
-
-    let l:current_config = s:setup_config_file()
-
-    let l:current_config["autosync"] = 0
-    let s:user_config["projects"][l:config_file] = l:current_config
-
-    let l:json_temp = json_encode(s:user_config)
-    call writefile([l:json_temp], s:user_config_file)
-
+    call s:set_config_option("autosync", 0)
 endfunction
 
 " Temporary enable auto save for current project
 function! s:enable_auto_save()
-    let l:config_file = s:config_file()
-    let l:current_config = s:setup_config_file()
-
-    let l:current_config["autosync"] = 1
-    let s:user_config["projects"][l:config_file] = l:current_config
-
-    let l:json_temp = json_encode(s:user_config)
-    call writefile([l:json_temp], s:user_config_file)
-
+    call s:set_config_option("autosync", 1)
 endfunction
 
 function! LoadConf()
