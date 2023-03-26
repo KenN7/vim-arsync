@@ -4,6 +4,82 @@
 " Date: 08/2019
 " License: MIT
 
+let s:config_path = stdpath("data")
+let s:user_config_file = s:config_path .. "/vim-arsync.json"
+if filereadable(s:user_config_file)
+    let s:user_config = json_decode(readfile(s:user_config_file))
+else
+    let s:user_config = {}
+endif
+
+" return path to config file if exist
+function! s:config_file()
+    let l:config_file = findfile('.vim-arsync', '.;')
+    if strlen(l:config_file) > 0
+        return fnamemodify(l:config_file, ':p:h')
+    endif
+    return
+endfunction
+
+" Check if temporary auto save is enabled
+function! s:autosync_enabled()
+    let l:current_config = s:setup_config_file()
+    if !has_key(l:current_config, "autosync")
+        return 1
+    endif
+    return l:current_config["autosync"]
+endfunction
+
+" Setting up config dict and handles errors
+function! s:setup_config_file()
+    let l:config_file = s:config_file()
+    if strlen(l:config_file) == 0
+        echoe "Didn't find any .vim-arsync file"
+        return
+    endif
+
+    " Handle when first time called from new project
+    if !has_key(s:user_config, "projects")
+        let s:user_config["projects"] = {}
+    endif
+    if !has_key(s:user_config["projects"], l:config_file)
+        let s:user_config["projects"][l:config_file] = {}
+    endif
+    return s:user_config["projects"][l:config_file]
+endfunction
+
+" Temporary disable auto save for current project
+function! s:disable_auto_save()
+    let l:config_file = s:config_file()
+
+    if strlen(l:config_file) == 0
+        echoe "Didn't find any .vim-arsync file"
+        return
+    endif
+
+    let l:current_config = s:setup_config_file()
+
+    let l:current_config["autosync"] = 0
+    let s:user_config["projects"][l:config_file] = l:current_config
+
+    let l:json_temp = json_encode(s:user_config)
+    call writefile([l:json_temp], s:user_config_file)
+
+endfunction
+
+" Temporary enable auto save for current project
+function! s:enable_auto_save()
+    let l:config_file = s:config_file()
+    let l:current_config = s:setup_config_file()
+
+    let l:current_config["autosync"] = 1
+    let s:user_config["projects"][l:config_file] = l:current_config
+
+    let l:json_temp = json_encode(s:user_config)
+    call writefile([l:json_temp], s:user_config_file)
+
+endfunction
+
 function! LoadConf()
     let l:conf_dict = {}
     let l:config_file = findfile('.vim-arsync', '.;')
@@ -118,15 +194,29 @@ function! ARsync(direction)
     endif
 endfunction
 
+function! s:sync_job(sleep_time)
+    if !s:autosync_enabled()
+        return
+    endif
+
+    if a:sleep_time > 0
+        call timer_start(a:sleep_time, { -> execute("call ARsync('up')", "")})
+    else
+        ARsyncUp
+    endif
+
+endfunction
+
 function! AutoSync()
+
     let l:conf_dict = LoadConf()
     if has_key(l:conf_dict, 'auto_sync_up')
         if l:conf_dict['auto_sync_up'] == 1
             if has_key(l:conf_dict, 'sleep_before_sync')
-                let g:sleep_time = l:conf_dict['sleep_before_sync']*1000
-                autocmd BufWritePost,FileWritePost * call timer_start(g:sleep_time, { -> execute("call ARsync('up')", "")})
+                let l:sleep_time = l:conf_dict['sleep_before_sync']*1000
+                autocmd BufWritePost,FileWritePost * call s:sync_job(l:sleep_time)
             else
-                autocmd BufWritePost,FileWritePost * ARsyncUp
+                autocmd BufWritePost,FileWritePost * call s:sync_job(0)
             endif
             " echo 'Setting up auto sync to remote'
         endif
@@ -142,6 +232,8 @@ command! ARsyncUp call ARsync('up')
 command! ARsyncUpDelete call ARsync('upDelete')
 command! ARsyncDown call ARsync('down')
 command! ARshowConf call ShowConf()
+command! ARDisableAutoSync call s:disable_auto_save()
+command! AREnableAutoSync call s:enable_auto_save()
 
 augroup vimarsync
     autocmd!
