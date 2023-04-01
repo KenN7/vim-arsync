@@ -42,6 +42,7 @@ ignore_dotfiles 1
 auto_sync_up    0
 remote_or_local remote
 sleep_before_sync 0
+rsync_flags     -u -l
 ```
 
 Required fields are:
@@ -58,12 +59,17 @@ Optional fields are:
 - ```auto_sync_up```   set to 1 for activating automatic upload syncing on file save
 - ```remote_or_local``` set to 'local' if you want to perform syncing localy
 - ```sleep_before_sync```   set to x seconds if you want to sleep before sync(like compiling a file before syncing)
+- ```rsync_flags```     adds given flags to the rsync call (default flags are `-varze` for remote syncing and `-var` for local syncing). All flags will be added in addition to those flags.
 
-NB: fields can be commented out with ```#```
+**NOTE:**
+- fields can be commented out with ```#```
+- rsync will always receive the flags `-varze` for remote syncing and `-var` for local syncing. Any flags you set using `rsync_flags` will pass **additional** flags to rsync
     
 ## Usage
 If ```auto_sync_up``` is set to 1, the plugin will automatically launch the ```:ARsyncUP``` command
 everytime a buffer is saved.
+
+Setting ```rsync_flags``` to `-u -l`, for example, will use rsync's 'update' feature and will also copy over symlinks. Check out rsync's man page to see all the options it supports.
 
 ### Commands
 
@@ -78,7 +84,7 @@ Commands can be mapped to keyboard shortcuts enhance operations
 ## TODO
 
 - [ ] run more tests
-- [ ] handle -u (update) feature of rsync ?
+- [x] handle -u (update) feature of rsync ?
 - [ ] deactivate auto sync on error
 - [ ] better handle comments in conf file
 
