@@ -15,6 +15,9 @@ function! LoadConf()
             if l:var_name == 'ignore_path'
                 let l:var_value = eval(substitute(i[stridx(i, ' '):], '^\s*\(.\{-}\)\s*$', '\1', ''))
                 " echo substitute(i[stridx(i, ' '):], '^\s*\(.\{-}\)\s*$', '\1', '')
+            elseif l:var_name == 'remote_passwd'
+                " Do not escape characters in passwords.
+                let l:var_value = substitute(i[stridx(i, ' '):], '^\s*\(.\{-}\)\s*$', '\1', '')
             else
                 let l:var_value = escape(substitute(i[stridx(i, ' '):], '^\s*\(.\{-}\)\s*$', '\1', ''), '%#!')
             endif
