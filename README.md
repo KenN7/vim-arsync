@@ -104,8 +104,8 @@ Commands can be mapped to keyboard shortcuts enhance operations
 - [ ] deactivate auto sync on error
 - [ ] better handle comments in conf file
 
-## Acknoledgements
+## Acknowledgements
 
 This plugin was inspired by [vim-hsftp](https://github.com/hesselbom/vim-hsftp) but vim-arsync offers more (rsync, ignore, async...).
 
-This plugins ships with the [async.vim](https://github.com/prabirshrestha/async.vim) library for async operation with vim and neovim.
+This plugins uses the [async.vim](https://github.com/prabirshrestha/async.vim) library for async operation with vim and neovim.
