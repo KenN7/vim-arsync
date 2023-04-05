@@ -113,7 +113,7 @@ function! ARsync(direction)
         call setqflist([], ' ', {'title' : 'vim-arsync'})
         let g:qfid = getqflist({'id' : 0}).id
         " redraw | echom join(cmd)
-        let l:job_id = arsync#job#start(cmd, {
+        let l:job_id = async#job#start(cmd, {
                     \ 'on_stdout': function('JobHandler'),
                     \ 'on_stderr': function('JobHandler'),
                     \ 'on_exit': function('JobHandler'),

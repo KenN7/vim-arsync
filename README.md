@@ -19,13 +19,35 @@ vim plugin for asynchronous synchronisation of remote files and local files usin
 ### Using vim-plug
 Place this in your .vimrc:
 
-    Plug 'kenn7/vim-arsync'
+```vim
+Plug 'kenn7/vim-arsync'
+
+" vim-arsync depedencies
+Plug 'prabirshrestha/async.vim'
+```
+... then run the following in Vim:
+
+```vim
+:source %
+:PlugInstall
+```
+
+### Using Packer
+
+```lua
+use {'kenn7/vim-arsync',
+    requires = {
+        {'prabirshrestha/async.vim'}
+    }
+}
+```
 
 ... then run the following in Vim:
 
-    :source %
-    :PlugInstall
-    
+```vim
+:source %
+:PackerSync
+``` 
     
 ### Configuration
 Create a ```.vim-arsync``` file on the root of your project that contains the following:
@@ -84,8 +106,8 @@ Commands can be mapped to keyboard shortcuts enhance operations
 - [ ] deactivate auto sync on error
 - [ ] better handle comments in conf file
 
-## Acknoledgements
+## Acknowledgements
 
 This plugin was inspired by [vim-hsftp](https://github.com/hesselbom/vim-hsftp) but vim-arsync offers more (rsync, ignore, async...).
 
-This plugins ships with the [async.vim](https://github.com/prabirshrestha/async.vim) library for async operation with vim and neovim.
+This plugins uses the [async.vim](https://github.com/prabirshrestha/async.vim) library for async operation with vim and neovim.
