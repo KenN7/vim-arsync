@@ -58,6 +58,8 @@ Optional fields are:
 - ```auto_sync_up```   set to 1 for activating automatic upload syncing on file save
 - ```remote_or_local``` set to 'local' if you want to perform syncing localy
 - ```sleep_before_sync```   set to x seconds if you want to sleep before sync(like compiling a file before syncing)
+- `local_options` overrides the default rsync options for case where `remote_or_local` is local
+- `remote_options` overrides the default rsync options for case where `remote_or_local` is remote
 
 NB: fields can be commented out with ```#```
     
