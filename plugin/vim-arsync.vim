@@ -34,6 +34,12 @@ function! LoadConf()
     if !has_key(l:conf_dict, "remote_or_local")
         let l:conf_dict['remote_or_local'] = "remote"
     endif
+    if !has_key(l:conf_dict, "local_options")
+        let l:conf_dict['local_options'] = "-var"
+    endif
+    if !has_key(l:conf_dict, "remote_options")
+        let l:conf_dict['remote_options'] = "-vazre"
+    endif
     return l:conf_dict
 endfunction
 
@@ -77,19 +83,19 @@ function! ARsync(direction)
         endif
         if l:conf_dict['remote_or_local'] == 'remote'
             if a:direction == 'down'
-                let l:cmd = [ 'rsync', '-vazre', l:conf_dict['rsync_flags'], '-e', 'ssh -p '.l:conf_dict['remote_port'], l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', l:conf_dict['local_path'] . '/']
+                let l:cmd = [ 'rsync', l:conf_dict['remote_options'], 'ssh -p '.l:conf_dict['remote_port'], l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', l:conf_dict['local_path'] . '/']
             elseif  a:direction == 'up'
-                let l:cmd = [ 'rsync', '-vazre', l:conf_dict['rsync_flags'], '-e', 'ssh -p '.l:conf_dict['remote_port'], l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/']
+                let l:cmd = [ 'rsync', l:conf_dict['remote_options'], 'ssh -p '.l:conf_dict['remote_port'], l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/']
             else " updelete
-                let l:cmd = [ 'rsync', '-vazre', l:conf_dict['rsync_flags'], '-e', 'ssh -p '.l:conf_dict['remote_port'], l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', '--delete']
+                let l:cmd = [ 'rsync', l:conf_dict['remote_options'], 'ssh -p '.l:conf_dict['remote_port'], l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', '--delete']
             endif
         elseif l:conf_dict['remote_or_local'] == 'local'
             if a:direction == 'down'
-                let l:cmd = [ 'rsync', '-var', l:conf_dict['rsync_flags'], '-e', l:conf_dict['remote_path'], l:conf_dict['local_path']]
+                let l:cmd = [ 'rsync', l:conf_dict['local_options'],  l:conf_dict['remote_path'] , l:conf_dict['local_path']]
             elseif  a:direction == 'up'
-                let l:cmd = [ 'rsync', '-var', l:conf_dict['rsync_flags'], '-e', l:conf_dict['local_path'], l:conf_dict['remote_path']]
+                let l:cmd = [ 'rsync', l:conf_dict['local_options'],  l:conf_dict['local_path'] , l:conf_dict['remote_path']]
             else " updelete
-                let l:cmd = [ 'rsync', '-var', l:conf_dict['rsync_flags'], '-e', l:conf_dict['local_path'], l:conf_dict['remote_path'] . '/', '--delete']
+                let l:cmd = [ 'rsync', l:conf_dict['local_options'],  l:conf_dict['local_path'] , l:conf_dict['remote_path'] . '/', '--delete']
             endif
         endif
         if has_key(l:conf_dict, 'ignore_path')
@@ -110,7 +116,7 @@ function! ARsync(direction)
         call setqflist([], ' ', {'title' : 'vim-arsync'})
         let g:qfid = getqflist({'id' : 0}).id
         " redraw | echom join(cmd)
-        let l:job_id = arsync#job#start(cmd, {
+        let l:job_id = async#job#start(cmd, {
                     \ 'on_stdout': function('JobHandler'),
                     \ 'on_stderr': function('JobHandler'),
                     \ 'on_exit': function('JobHandler'),
@@ -151,5 +157,3 @@ augroup vimarsync
     autocmd VimEnter * call AutoSync()
     autocmd DirChanged * call AutoSync()
 augroup END
-
-

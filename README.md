@@ -19,13 +19,35 @@ vim plugin for asynchronous synchronisation of remote files and local files usin
 ### Using vim-plug
 Place this in your .vimrc:
 
-    Plug 'kenn7/vim-arsync'
+```vim
+Plug 'kenn7/vim-arsync'
+
+" vim-arsync depedencies
+Plug 'prabirshrestha/async.vim'
+```
+... then run the following in Vim:
+
+```vim
+:source %
+:PlugInstall
+```
+
+### Using Packer
+
+```lua
+use {'kenn7/vim-arsync',
+    requires = {
+        {'prabirshrestha/async.vim'}
+    }
+}
+```
 
 ... then run the following in Vim:
 
-    :source %
-    :PlugInstall
-    
+```vim
+:source %
+:PackerSync
+``` 
     
 ### Configuration
 Create a ```.vim-arsync``` file on the root of your project that contains the following:
@@ -42,7 +64,6 @@ ignore_dotfiles 1
 auto_sync_up    0
 remote_or_local remote
 sleep_before_sync 0
-rsync_flags     -u -l
 ```
 
 Required fields are:
@@ -59,7 +80,8 @@ Optional fields are:
 - ```auto_sync_up```   set to 1 for activating automatic upload syncing on file save
 - ```remote_or_local``` set to 'local' if you want to perform syncing localy
 - ```sleep_before_sync```   set to x seconds if you want to sleep before sync(like compiling a file before syncing)
-- ```rsync_flags```     adds given flags to the rsync call (default flags are `-varze` for remote syncing and `-var` for local syncing). All flags will be added in addition to those flags.
+- `local_options` overrides the default rsync options for case where `remote_or_local` is local
+- `remote_options` overrides the default rsync options for case where `remote_or_local` is remote
 
 **NOTE:**
 - fields can be commented out with ```#```
@@ -88,8 +110,8 @@ Commands can be mapped to keyboard shortcuts enhance operations
 - [ ] deactivate auto sync on error
 - [ ] better handle comments in conf file
 
-## Acknoledgements
+## Acknowledgements
 
 This plugin was inspired by [vim-hsftp](https://github.com/hesselbom/vim-hsftp) but vim-arsync offers more (rsync, ignore, async...).
 
-This plugins ships with the [async.vim](https://github.com/prabirshrestha/async.vim) library for async operation with vim and neovim.
+This plugins uses the [async.vim](https://github.com/prabirshrestha/async.vim) library for async operation with vim and neovim.
