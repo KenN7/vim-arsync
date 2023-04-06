@@ -80,12 +80,12 @@ Optional fields are:
 - ```auto_sync_up```   set to 1 for activating automatic upload syncing on file save
 - ```remote_or_local``` set to 'local' if you want to perform syncing localy
 - ```sleep_before_sync```   set to x seconds if you want to sleep before sync(like compiling a file before syncing)
-- `local_options` overrides the default rsync options for case where `remote_or_local` is local
-- `remote_options` overrides the default rsync options for case where `remote_or_local` is remote
+- ```local_options``` overrides the default rsync options for case where `remote_or_local` is local
+- ```remote_options``` overrides the default rsync options for case where `remote_or_local` is remote
 
 **NOTE:**
 - fields can be commented out with ```#```
-- rsync will always receive the flags `-varze` for remote syncing and `-var` for local syncing. Any flags you set using `rsync_flags` will pass **additional** flags to rsync
+- rsync will receive the flags `-varze` for remote syncing and `-var` for local syncing by default. Any flags you set using `rsync_flags` will override these flags.
     
 ## Usage
 If ```auto_sync_up``` is set to 1, the plugin will automatically launch the ```:ARsyncUP``` command
@@ -106,7 +106,6 @@ Commands can be mapped to keyboard shortcuts enhance operations
 ## TODO
 
 - [ ] run more tests
-- [x] handle -u (update) feature of rsync ?
 - [ ] deactivate auto sync on error
 - [ ] better handle comments in conf file
 
