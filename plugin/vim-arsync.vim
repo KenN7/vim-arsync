@@ -6,10 +6,10 @@
 
 function! LoadConf()
     let l:conf_dict = {}
-    let l:config_file = findfile('.vim-arsync', '.;')
+    let l:file_exists = filereadable('.vim-arsync')
 
-    if strlen(l:config_file) > 0
-        let l:conf_options = readfile(l:config_file)
+    if l:file_exists > 0
+        let l:conf_options = readfile('.vim-arsync')
         for i in l:conf_options
             let l:var_name = substitute(i[0:stridx(i, ' ')], '^\s*\(.\{-}\)\s*$', '\1', '')
             if l:var_name == 'ignore_path'
@@ -25,8 +25,7 @@ function! LoadConf()
         endfor
     endif
     if !has_key(l:conf_dict, "local_path")
-        " echom fnamemodify(l:config_file,':p:h')
-        let l:conf_dict['local_path'] = fnamemodify(l:config_file,':p:h')
+        let l:conf_dict['local_path'] = getcwd()
     endif
     if !has_key(l:conf_dict, "remote_port")
         let l:conf_dict['remote_port'] = 22
