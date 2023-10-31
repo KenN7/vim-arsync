@@ -114,3 +114,8 @@ Commands can be mapped to keyboard shortcuts enhance operations
 This plugin was inspired by [vim-hsftp](https://github.com/hesselbom/vim-hsftp) but vim-arsync offers more (rsync, ignore, async...).
 
 This plugins uses the [async.vim](https://github.com/prabirshrestha/async.vim) library for async operation with vim and neovim.
+
+## Similar projects
+
+- [coffebar/transfer.nvim](https://github.com/coffebar/transfer.nvim)
+- [OscarCreator/rsync.nvim](https://github.com/OscarCreator/rsync.nvim)
