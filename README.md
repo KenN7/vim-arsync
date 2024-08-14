@@ -88,7 +88,7 @@ Optional fields are:
 - rsync will receive the flags `-varze` for remote syncing and `-var` for local syncing by default. Any flags you set using `rsync_flags` will override these flags.
     
 ## Usage
-If ```auto_sync_up``` is set to 1, the plugin will automatically launch the ```:ARsyncUP``` command
+If ```auto_sync_up``` is set to 1, the plugin will automatically launch the ```:ARsyncUp``` command
 everytime a buffer is saved.
 
 Setting ```rsync_flags``` to include `-ul`, for example, will use rsync's 'update' feature and will also copy over symlinks. Check out rsync's man page to see all the options it supports.

@@ -37,36 +37,59 @@ function! LoadConf()
         let l:conf_dict['local_options'] = "-var"
     endif
     if !has_key(l:conf_dict, "remote_options")
-        let l:conf_dict['remote_options'] = "-vazre"
+        let l:conf_dict['remote_options'] = "-vazr"
     endif
     return l:conf_dict
 endfunction
 
 function! JobHandler(job_id, data, event_type)
-    " redraw | echom a:job_id . ' ' . a:event_type
-    if a:event_type == 'stdout' || a:event_type == 'stderr'
-        " redraw | echom string(a:data)
-        if has_key(getqflist({'id' : g:qfid}), 'id')
-            call setqflist([], 'a', {'id' : g:qfid, 'lines' : a:data})
-        endif
-    elseif a:event_type == 'exit'
+    if a:event_type == 'exit'
         if a:data != 0
             copen
-        endif
-        if a:data == 0
+        elseif a:data == 0
+            let s:filename = expand('%:t')
+            echohl Green
             echo "vim-arsync success."
+            echohl None
+            " Clear message after 2 seconds and show filename
+            call timer_start(2000, 'ShowFilename')
         endif
-        " echom string(a:data)
     endif
 endfunction
 
+function! ShowFilename(timer_id)
+    echo s:filename . " (project synced.)"
+endfunction
+
+" function! JobHandler(job_id, data, event_type)
+"     " redraw | echom a:job_id . ' ' . a:event_type
+"     let prev_msg = execute('messages')[-1]
+"     if a:event_type == 'stdout' || a:event_type == 'stderr'
+"         " redraw | echom string(a:data)
+"         if has_key(getqflist({'id' : g:qfid}), 'id')
+"             call setqflist([], 'a', {'id' : g:qfid, 'lines' : a:data})
+"         endif
+"     elseif a:event_type == 'exit'
+"         if a:data != 0
+"             copen
+"         endif
+"         if a:data == 0
+"             echo "vim-arsync success."
+"             call timer_start(2000, {-> execute('echo "'. prev_msg . '"')})
+"         endif
+"         " echom string(a:data)
+"     endif
+" endfunction
+
 function! ShowConf()
     let l:conf_dict = LoadConf()
-    echo l:conf_dict
     echom string(getqflist())
 endfunction
 
 function! ARsync(direction)
+    if filereadable('.vim-arsync-disabled')
+        return
+    endif
     let l:conf_dict = LoadConf()
     if has_key(l:conf_dict, 'remote_host')
         let l:user_passwd = ''
@@ -84,7 +107,7 @@ function! ARsync(direction)
             if a:direction == 'down'
                 let l:cmd = [ 'rsync', l:conf_dict['remote_options'], 'ssh -p '.l:conf_dict['remote_port'], l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', l:conf_dict['local_path'] . '/']
             elseif  a:direction == 'up'
-                let l:cmd = [ 'rsync', l:conf_dict['remote_options'], 'ssh -p '.l:conf_dict['remote_port'], l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/']
+                let l:cmd = [ 'rsync', l:conf_dict['remote_options'], "--filter", ':- .gitignore', l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/']
             else " updelete
                 let l:cmd = [ 'rsync', l:conf_dict['remote_options'], 'ssh -p '.l:conf_dict['remote_port'], l:conf_dict['local_path'] . '/', l:user_passwd . l:conf_dict['remote_host'] . ':' . l:conf_dict['remote_path'] . '/', '--delete']
             endif
@@ -127,6 +150,9 @@ function! ARsync(direction)
 endfunction
 
 function! AutoSync()
+    if filereadable('.vim-arsync-disabled')
+        return
+    endif
     let l:conf_dict = LoadConf()
     if has_key(l:conf_dict, 'auto_sync_up')
         if l:conf_dict['auto_sync_up'] == 1
@@ -146,10 +172,25 @@ if !executable('rsync')
     finish
 endif
 
+function! ARsyncToggle()
+    let l:filename = getcwd() . '/.vim-arsync-disabled'
+
+    if filereadable(l:filename)
+        call delete(l:filename)
+        echo "Enabled vim-arysnc auto sync up"
+    else
+        " File not found, create it
+        call writefile([], l:filename)
+        echo "Disabled vim-arysnc auto sync up"
+    endif
+endfunction
+
+
 command! ARsyncUp call ARsync('up')
 command! ARsyncUpDelete call ARsync('upDelete')
 command! ARsyncDown call ARsync('down')
 command! ARshowConf call ShowConf()
+command! ARsyncToggle call ARsyncToggle()
 
 augroup vimarsync
     autocmd!
